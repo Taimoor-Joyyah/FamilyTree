@@ -76,7 +76,7 @@ class Window(QMainWindow):
         self.parentRemoveButton.clicked.connect(self.parentRemove)
         self.parentUpdateButton.clicked.connect(self.parentUpdate)
         self.saveButton.clicked.connect(self.save)
-        self.treeGraphButton.clicked.connect(self.treeGraph())
+        self.treeGraphButton.clicked.connect(self.treeGraph)
 
     @staticmethod
     def tableRemoveItems(tableWidget: QTableWidget, Objects: [object]):

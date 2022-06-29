@@ -635,7 +635,7 @@
        </spacer>
       </item>
       <item>
-       <widget class="QPushButton" name="pushButton">
+       <widget class="QPushButton" name="treeGraphButton">
         <property name="text">
          <string>Tree Graph</string>
         </property>
