@@ -19,6 +19,9 @@ class Window(QMainWindow):
     parentRemoveButton: QPushButton
     parentUpdateButton: QPushButton
 
+    personMsg: QLabel
+    parentMsg: QLabel
+
     personTableWidget: QTableWidget
     parentTableWidget: QTableWidget
 
@@ -84,11 +87,23 @@ class Window(QMainWindow):
             for i in range(Range.topRow(), Range.bottomRow() + 1):
                 Objects.pop(i)
 
-    def personAdd(self):
+    def personFieldValid(self):
         if not self.nameLineEdit.text() or not self.parentIDLineEdit.text():
+            self.personMsg.setText("Empty Field(s) Found.")
+            return False
+        if len(self.nameLineEdit.text()) < 3:
+            self.personMsg.setText("Name must be 3 or more character.")
+            return False
+        if not self.parentIDLineEdit.text().isnumeric():
+            self.personMsg.setText("Parent ID must be numeric.")
+            return False
+        return True
+
+    def personAdd(self):
+        if not self.personFieldValid():
             return
         family.add_person(self.nameLineEdit.text(), self.dOBEdit.date().toPyDate(),
-                          'M' if self.maleRadioButton.isChecked() else "F", int(self.parentIDLineEdit.text()))
+                          0 if self.maleRadioButton.isChecked() else 1, int(self.parentIDLineEdit.text()))
         self.refreshTable(Person)
         self.clearPersonFields()
 
@@ -99,18 +114,32 @@ class Window(QMainWindow):
         self.refreshTable(Person)
 
     def personUpdate(self):
+        if not self.personFieldValid():
+            return
         ranges = self.personTableWidget.selectedRanges()
         if not ranges:
             return
         person = family.personData[ranges[0].topRow()]
         person.name = self.nameLineEdit.text()
         person.DOB = self.dOBEdit.date().toPyDate()
-        person.gender = 'M' if self.maleRadioButton.isChecked() else "F"
+        person.gender = 0 if self.maleRadioButton.isChecked() else 1
         person.parentId = int(self.parentIDLineEdit.text())
         self.refreshTable(Person)
 
-    def parentAdd(self):
+    def parentFieldValid(self):
         if not self.fatherIDLineEdit.text() or not self.motherIDLineEdit.text():
+            self.parentMsg.setText("Empty Field(s) Found.")
+            return False
+        if not self.fatherIDLineEdit.text().isnumeric():
+            self.parentMsg.setText("Father ID must be numeric.")
+            return False
+        if not self.motherIDLineEdit.text().isnumeric():
+            self.parentMsg.setText("Father ID must be numeric.")
+            return False
+        return True
+
+    def parentAdd(self):
+        if not self.parentFieldValid():
             return
         family.add_parent(int(self.fatherIDLineEdit.text()),
                           int(self.motherIDLineEdit.text()), self.dOMEdit.date().toPyDate())
@@ -124,6 +153,8 @@ class Window(QMainWindow):
         self.refreshTable(Parent)
 
     def parentUpdate(self):
+        if not self.parentFieldValid():
+            return
         ranges = self.parentTableWidget.selectedRanges()
         if not ranges:
             return
@@ -154,11 +185,11 @@ class Window(QMainWindow):
 
 if __name__ == "__main__":
     if not Path(familyData_filename).exists():
-        family = Family()
+        family = FamilyData()
         family.add_root()
         write_familyData(family)
 
-    family: Family = load_familyData()
+    family: FamilyData = load_familyData()
 
     app = QApplication(sys.argv)
 
