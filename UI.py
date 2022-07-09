@@ -49,9 +49,10 @@ class Window(QMainWindow):
         for index, person in enumerate(persons):
             tableWidget.setItem(index, 0, QTableWidgetItem(str(person.id)))
             tableWidget.setItem(index, 1, QTableWidgetItem(person.name))
-            tableWidget.setItem(index, 2, QTableWidgetItem(person.DOB.strftime("%d-%m-%Y")))
-            tableWidget.setItem(index, 3, QTableWidgetItem(person.gender))
-            tableWidget.setItem(index, 4, QTableWidgetItem(str(person.parentId)))
+            if index != 0:
+                tableWidget.setItem(index, 2, QTableWidgetItem(person.DOB.strftime("%d-%m-%Y")))
+                tableWidget.setItem(index, 3, QTableWidgetItem("Male" if person.gender == 0 else "Female"))
+                tableWidget.setItem(index, 4, QTableWidgetItem(str(person.parentId)))
 
     @staticmethod
     def parentTableFill(tableWidget: QTableWidget, parents: [Parent]):
@@ -60,7 +61,8 @@ class Window(QMainWindow):
             tableWidget.setItem(index, 0, QTableWidgetItem(str(parent.id)))
             tableWidget.setItem(index, 1, QTableWidgetItem(str(parent.fatherId)))
             tableWidget.setItem(index, 2, QTableWidgetItem(str(parent.motherId)))
-            tableWidget.setItem(index, 3, QTableWidgetItem(parent.DOM.strftime("%d-%m-%Y")))
+            if index != 0:
+                tableWidget.setItem(index, 3, QTableWidgetItem(parent.DOM.strftime("%d-%m-%Y")))
 
     def refreshTable(self, object):
         if object is Person:
@@ -88,16 +90,20 @@ class Window(QMainWindow):
                 Objects.pop(i)
 
     def personFieldValid(self):
-        if not self.nameLineEdit.text() or not self.parentIDLineEdit.text():
-            self.personMsg.setText("Empty Field(s) Found.")
-            return False
-        if len(self.nameLineEdit.text()) < 3:
-            self.personMsg.setText("Name must be 3 or more character.")
-            return False
-        if not self.parentIDLineEdit.text().isnumeric():
-            self.personMsg.setText("Parent ID must be numeric.")
-            return False
-        return True
+        name = self.nameLineEdit.text()
+        parentId = self.parentIDLineEdit.text()
+        if not name or not parentId:
+            msg = "Empty Field(s) Found."
+        elif len(name) < 3:
+            msg = "Name must be 3 or more character."
+        elif not parentId.isnumeric():
+            msg = "Parent ID must be numeric."
+        elif not FamilyData.parentById(family, int(parentId)):
+            msg = "Parent ID does not exist."
+        else:
+            return True
+        self.personMsg.setText(msg)
+        return False
 
     def personAdd(self):
         if not self.personFieldValid():
@@ -127,16 +133,28 @@ class Window(QMainWindow):
         self.refreshTable(Person)
 
     def parentFieldValid(self):
-        if not self.fatherIDLineEdit.text() or not self.motherIDLineEdit.text():
-            self.parentMsg.setText("Empty Field(s) Found.")
-            return False
-        if not self.fatherIDLineEdit.text().isnumeric():
-            self.parentMsg.setText("Father ID must be numeric.")
-            return False
-        if not self.motherIDLineEdit.text().isnumeric():
-            self.parentMsg.setText("Father ID must be numeric.")
-            return False
-        return True
+        fatherId = self.fatherIDLineEdit.text()
+        motherId = self.motherIDLineEdit.text()
+        father = FamilyData.personById(family, int(fatherId))
+        mother = FamilyData.personById(family, int(motherId))
+        if not fatherId or not motherId:
+            msg = "Empty Field(s) Found."
+        elif not fatherId.isnumeric():
+            msg = "Father ID must be numeric."
+        elif not father:
+            msg = "Father ID does not exist."
+        elif father.gender != 0:
+            msg = "Father ID person is not Male."
+        elif not motherId.isnumeric():
+            msg = "Mother ID must be numeric."
+        elif not mother:
+            msg = "Mother ID does not exist."
+        elif mother.gender != 1:
+            msg = "Mother ID person is not Female."
+        else:
+            return True
+        self.parentMsg.setText(msg)
+        return False
 
     def parentAdd(self):
         if not self.parentFieldValid():
