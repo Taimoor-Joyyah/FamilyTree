@@ -6,8 +6,8 @@ familyData_filename = "familyData.dat"
 
 
 class Person:
-    def __init__(self, id, name, DOB, gender, parentId):
-        self.id: int = id
+    def __init__(self, ID, name, DOB, gender, parentId):
+        self.id: int = ID
         self.name: str = name
         self.DOB: date = DOB
         self.gender: int = gender  # 0 - Male, 1 - Female
@@ -19,8 +19,8 @@ class Person:
 
 
 class Parent:
-    def __init__(self, id, fatherId, motherId, DOM, rootLevel):
-        self.id: int = id
+    def __init__(self, ID, fatherId, motherId, DOM, rootLevel):
+        self.id: int = ID
         self.fatherId: int = fatherId
         self.motherId: int = motherId
         self.DOM: date = DOM

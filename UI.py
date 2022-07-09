@@ -64,10 +64,10 @@ class Window(QMainWindow):
             if index != 0:
                 tableWidget.setItem(index, 3, QTableWidgetItem(parent.DOM.strftime("%d-%m-%Y")))
 
-    def refreshTable(self, object):
-        if object is Person:
+    def refreshTable(self, Object):
+        if Object is Person:
             self.personTableFill(self.personTableWidget, family.personData)
-        elif object is Parent:
+        elif Object is Parent:
             self.parentTableFill(self.parentTableWidget, family.parentData)
 
     def initialize(self):
