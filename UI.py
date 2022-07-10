@@ -3,12 +3,10 @@ import sys
 
 from PyQt6.QtWidgets import *
 from PyQt6.uic import load_ui
+from matplotlib import pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 
 from familytree import *
-
-
-class GraphTree(QWidget):
-    pass
 
 
 class Window(QMainWindow):
@@ -35,12 +33,15 @@ class Window(QMainWindow):
     motherIDLineEdit: QLineEdit
     dOMEdit: QDateEdit
 
-    saveButton: QPushButton
+    saveDataButton: QPushButton
     treeGraphButton: QPushButton
+    saveTreeButton: QPushButton
 
     def __init__(self, uiFile):
         super().__init__()
         load_ui.loadUi(uiFile, self)
+        self.treeWindow = QMainWindow()
+        self.treeWindow.setWindowTitle("Tree Graph")
         self.initialize()
 
     @staticmethod
@@ -80,8 +81,11 @@ class Window(QMainWindow):
         self.parentAddButton.clicked.connect(self.parentAdd)
         self.parentRemoveButton.clicked.connect(self.parentRemove)
         self.parentUpdateButton.clicked.connect(self.parentUpdate)
-        self.saveButton.clicked.connect(self.save)
+        self.saveDataButton.clicked.connect(self.saveData)
         self.treeGraphButton.clicked.connect(self.treeGraph)
+        self.saveTreeButton.clicked.connect(self.saveTree)
+
+        self.treeWindow.setCentralWidget(FigureCanvasQTAgg(plt.figure()))
 
     @staticmethod
     def tableRemoveItems(tableWidget: QTableWidget, Objects: [object]):
@@ -135,11 +139,12 @@ class Window(QMainWindow):
     def parentFieldValid(self):
         fatherId = self.fatherIDLineEdit.text()
         motherId = self.motherIDLineEdit.text()
-        father = FamilyData.personById(family, int(fatherId))
-        mother = FamilyData.personById(family, int(motherId))
         if not fatherId or not motherId:
             msg = "Empty Field(s) Found."
-        elif not fatherId.isnumeric():
+            return False
+        mother = FamilyData.personById(family, int(motherId))
+        father = FamilyData.personById(family, int(fatherId))
+        if not fatherId.isnumeric():
             msg = "Father ID must be numeric."
         elif not father:
             msg = "Father ID does not exist."
@@ -193,11 +198,21 @@ class Window(QMainWindow):
         self.dOBEdit.setDate(date(2000, 1, 1))
         self.maleRadioButton.setChecked(True)
 
+    @staticmethod
+    def updateTree():
+        plt.clf()
+        Tree(FamilyTree(family).families)
+
     def treeGraph(self):
-        pass
+        self.updateTree()
+        self.treeWindow.show()
+
+    def saveTree(self):
+        self.updateTree()
+        plt.savefig(fig_filename, dpi=500)
 
     @staticmethod
-    def save():
+    def saveData():
         write_familyData(family)
 
 

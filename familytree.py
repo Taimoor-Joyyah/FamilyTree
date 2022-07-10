@@ -1,8 +1,10 @@
 from dateutil import relativedelta
 from datetime import date
+import networkx as nx
 import pickle
 
 familyData_filename = "familyData.dat"
+fig_filename = "fig.png"
 
 
 class Person:
@@ -13,6 +15,9 @@ class Person:
         self.gender: int = gender  # 0 - Male, 1 - Female
         self.parentId: int = parentId
         self.familyId: int = -1
+
+    def __str__(self):
+        return self.name
 
     def get_age(self):
         return relativedelta.relativedelta(date.today(), self.DOB).years
@@ -84,10 +89,14 @@ class Family:
         self.mother: Person = FamilyData.personById(family, parent.motherId)
         self.children: [Person] = []
         self.rootLevel: int = parent.rootLevel
+        self.familyId: int = parent.id
 
         for person in family.personData:
             if person.parentId == parent.id:
                 self.children.append(person)
+
+    def __str__(self):
+        return f"Family {self.familyId}"
 
 
 class FamilyTree:
@@ -98,3 +107,22 @@ class FamilyTree:
             self.families.append(Family(parent, family))
 
         self.families.sort(key=lambda x: x.rootLevel)
+
+
+class Tree:
+    def __init__(self, families: [Family]):
+        edgeList = []
+        for family in families:
+            for child in family.children:
+                edgeList.append([family, child])
+            edgeList.append([family.father, family])
+            edgeList.append([family.mother, family])
+
+        graph = nx.DiGraph()
+        graph.clear()
+        graph.add_edges_from(edgeList)
+        pos = nx.spring_layout(graph, k=1)
+
+        nx.draw_networkx_edges(graph, pos, alpha=0.4, min_target_margin=5, min_source_margin=5)
+        nx.draw_networkx_nodes(graph, pos, edgecolors='b', node_size=20, node_color="r")
+        nx.draw_networkx_labels(graph, pos, font_size=8, verticalalignment="bottom")
