@@ -29,6 +29,7 @@ class Parent:
         self.fatherId: int = fatherId
         self.motherId: int = motherId
         self.DOM: date = DOM
+        self.children: int = 0
         self.rootLevel = rootLevel
 
     def get_marriage_years(self):
@@ -49,6 +50,7 @@ class FamilyData:
     def add_person(self, name, dob, gender, parentId):
         self.persons += 1
         self.personData.append(Person(self.persons, name, dob, gender, parentId))
+        self.parentById(parentId).children += 1
 
     def add_parent(self, fatherId, motherId, dom):
         self.parents += 1

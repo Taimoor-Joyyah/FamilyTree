@@ -71,6 +71,10 @@ class Window(QMainWindow):
         elif Object is Parent:
             self.parentTableFill(self.parentTableWidget, family.parentData)
 
+    def clearWarning(self):
+        self.personMsg.clear()
+        self.parentMsg.clear()
+
     def initialize(self):
         self.refreshTable(Person)
         self.refreshTable(Parent)
@@ -87,11 +91,31 @@ class Window(QMainWindow):
 
         self.treeWindow.setCentralWidget(FigureCanvasQTAgg(plt.figure()))
 
-    @staticmethod
-    def tableRemoveItems(tableWidget: QTableWidget, Objects: [object]):
+    def tableRemoveItems(self, tableWidget: QTableWidget, Objects: [object]):
         for Range in tableWidget.selectedRanges():
             for i in range(Range.topRow(), Range.bottomRow() + 1):
-                Objects.pop(i)
+                obj = Objects[i]
+                if type(obj) is Person:
+                    if obj.id == 0:
+                        self.personMsg.setText("ROOT Person cannot be removed.")
+                        return
+                    if obj.familyId != -1:
+                        self.personMsg.setText(f"{obj.name} cannot be removed, it should not be parent.")
+                        return
+                    else:
+                        FamilyData.parentById(family, obj.parentId).children -= 1
+                        Objects.pop(i)
+                elif type(obj) is Parent:
+                    if obj.id == 0:
+                        self.parentMsg.setText("ROOT Parent cannot be removed.")
+                        return
+                    if obj.children != 0:
+                        self.parentMsg.setText(f"Parent(id={obj.id}) cannot be removed, it should not have children.")
+                        return
+                    else:
+                        FamilyData.personById(family, obj.fatherId).familyId = -1
+                        FamilyData.personById(family, obj.motherId).familyId = -1
+                        Objects.pop(i)
 
     def personFieldValid(self):
         name = self.nameLineEdit.text()
@@ -110,6 +134,7 @@ class Window(QMainWindow):
         return False
 
     def personAdd(self):
+        self.clearWarning()
         if not self.personFieldValid():
             return
         family.add_person(self.nameLineEdit.text(), self.dOBEdit.date().toPyDate(),
@@ -118,16 +143,20 @@ class Window(QMainWindow):
         self.clearPersonFields()
 
     def personRemove(self):
+        self.clearWarning()
         if not self.personTableWidget.selectedRanges():
+            self.personMsg.setText("No Person selected.")
             return
         self.tableRemoveItems(self.personTableWidget, family.personData)
         self.refreshTable(Person)
 
     def personUpdate(self):
-        if not self.personFieldValid():
-            return
+        self.clearWarning()
         ranges = self.personTableWidget.selectedRanges()
         if not ranges:
+            self.personMsg.setText("No Person selected.")
+            return
+        if not self.personFieldValid():
             return
         person = family.personData[ranges[0].topRow()]
         person.name = self.nameLineEdit.text()
@@ -140,7 +169,7 @@ class Window(QMainWindow):
         fatherId = self.fatherIDLineEdit.text()
         motherId = self.motherIDLineEdit.text()
         if not fatherId or not motherId:
-            msg = "Empty Field(s) Found."
+            self.parentMsg.setText("Empty Field(s) Found.")
             return False
         mother = FamilyData.personById(family, int(motherId))
         father = FamilyData.personById(family, int(fatherId))
@@ -162,6 +191,7 @@ class Window(QMainWindow):
         return False
 
     def parentAdd(self):
+        self.clearWarning()
         if not self.parentFieldValid():
             return
         family.add_parent(int(self.fatherIDLineEdit.text()),
@@ -170,16 +200,20 @@ class Window(QMainWindow):
         self.clearParentFields()
 
     def parentRemove(self):
+        self.clearWarning()
         if not self.parentTableWidget.selectedRanges():
+            self.parentMsg.setText("No Parent selected.")
             return
         self.tableRemoveItems(self.parentTableWidget, family.parentData)
         self.refreshTable(Parent)
 
     def parentUpdate(self):
-        if not self.parentFieldValid():
-            return
+        self.clearWarning()
         ranges = self.parentTableWidget.selectedRanges()
         if not ranges:
+            self.parentMsg.setText("No Parent selected.")
+            return
+        if not self.parentFieldValid():
             return
         parent = family.parentData[ranges[0].topRow()]
         parent.fatherId = int(self.fatherIDLineEdit.text())
